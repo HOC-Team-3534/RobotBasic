@@ -88,7 +88,9 @@ public class AutonStateMachine0 extends AutonStateMachineBase implements AutonSt
 			Robot.drive.setLeftPower(leftFollower.calculate(frontLeft.getSensorCollection().getQuadraturePosition()));
 			
 			if(rightFollower.isFinished() && leftFollower.isFinished()) {
+				
 				nextState = 100;
+				
 			}
 			break;
 			

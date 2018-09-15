@@ -2,8 +2,8 @@ package Autons;
 
 public class AutonStateMachineBase implements AutonStateMachineInterface {
 
-	protected int state;
-	protected int stateCnt;
+	int state;
+	int stateCnt;
 	
 	
 	@Override

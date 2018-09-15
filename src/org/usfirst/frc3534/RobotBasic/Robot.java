@@ -74,8 +74,6 @@ public class Robot extends TimedRobot {
     @Override
     public void autonomousInit() {
     	
-    	log();
-    	
     	int desiredAutonMode = 0;
 	    
    	 	try {
@@ -117,13 +115,13 @@ public class Robot extends TimedRobot {
         
         while(this.isAutonomous()) {
         	
-        	log();
-        	
         	RobotState("autonomous enabled");
         	
         	long currentTime = System.currentTimeMillis();
         	
         	if(currentTime - prevLoopTime >= designatedLoopPeriod) {
+        		
+        		log();
 
         		loopPeriod = (int)(currentTime - prevLoopTime);
         		prevLoopTime = currentTime;
