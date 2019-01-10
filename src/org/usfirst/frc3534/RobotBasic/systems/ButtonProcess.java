@@ -1,171 +1,168 @@
 package org.usfirst.frc3534.RobotBasic.systems;
+
 public class ButtonProcess {
-	
+
 	boolean buttonNotPressed = true;
-	
-	String[] buttonNames;
-	
-	String stateOut, stopState;
-	
+
+	int stateOut, stopState;
+
 	double remainingTime = 0, designatedTimePeriod;
-	
+
 	double[] seconds;
-	
+
 	boolean[] finishes;
-	
+
 	boolean timeBased;
-	
+
 	int currentState;
-	
+
 	/**
 	 * 
-	 * @param buttonNames				the state wanted by the button associated by order when process(boolean[] buttons) is called
-	 * @param seconds					the amount of time in seconds for the state before it returns to the stopState
-	 * @param stopState					the stop state for the motor(s) being controlled
-	 * @param designatedTimePeriod		the time of the loop period of the robot
+	 * @param seconds              the amount of time in seconds for the state
+	 *                             before it returns to the stopState
+	 * @param stopState            the stop state for the motor(s) being controlled
+	 * @param designatedTimePeriod the time of the loop period of the robot
 	 */
-	public ButtonProcess(String[] buttonNames, double[] seconds, String stopState, double designatedTimePeriod) {
-		
-		this.buttonNames = buttonNames;
+	public ButtonProcess(double[] seconds, int stopState, double designatedTimePeriod) {
+
 		this.seconds = seconds;
 		this.stopState = stopState;
 		this.designatedTimePeriod = designatedTimePeriod;
 		stateOut = this.stopState;
 		timeBased = true;
-		
+
 	}
-	
+
 	/**
 	 * 
-	 * @param buttonNames				the state wanted by the button associated by order when process(boolean[] buttons) is called
-	 * @param finishes					the boolean such as a sensor to check in order to return to the stopState
-	 * @param stopState					the stop state for the motor(s) being controlled
-	 * @param designatedTimePeriod		the time of the loop period of the robot
+	 * @param finishes             the boolean such as a sensor to check in order to
+	 *                             return to the stopState
+	 * @param stopState            the stop state for the motor(s) being controlled
+	 * @param designatedTimePeriod the time of the loop period of the robot
 	 */
-	public ButtonProcess(String[] buttonNames, boolean[] finishes, String stopState, double designatedTimePeriod) {
-		
-		this.buttonNames = buttonNames;
+	public ButtonProcess(boolean[] finishes, int stopState, double designatedTimePeriod) {
+
 		this.finishes = finishes;
 		this.stopState = stopState;
 		this.designatedTimePeriod = designatedTimePeriod;
 		stateOut = this.stopState;
 		timeBased = false;
-		
+
 	}
-	
+
 	/**
 	 * 
-	 * @param buttons					the joystick/xboxController whenPressed expression
+	 * @param buttons the joystick/xboxController whenPressed expression
 	 */
-	public String process(boolean[] buttons) {
-		
+	public int process(boolean[] buttons) {
+
 		buttonNotPressed = true;
-		
-		if(timeBased) {
-			
-			if(stateOut == stopState) {
-			
-				for(int i = 0; i < buttons.length && buttonNotPressed; i++) {
-					
-					if(buttons[i]) {
-						
+
+		if (timeBased) {
+
+			if (stateOut == stopState) {
+
+				for (int i = 0; i < buttons.length && buttonNotPressed; i++) {
+
+					if (buttons[i]) {
+
 						buttonNotPressed = false;
-						stateOut = buttonNames[i];
+						stateOut = i;
 						remainingTime = seconds[i];
-						
-					}else {
-						
+
+					} else {
+
 					}
 				}
-				
-			}else {
-				
-				for(int i = 0; i < buttons.length && buttonNotPressed; i++) {
-					
-					if(buttons[i]) {
-						
-						if(stateOut == buttonNames[i]) {
-							
+
+			} else {
+
+				for (int i = 0; i < buttons.length && buttonNotPressed; i++) {
+
+					if (buttons[i]) {
+
+						if (stateOut == i) {
+
 							buttonNotPressed = false;
 							stateOut = stopState;
 							remainingTime = 0;
-							
-						}else {
-							
+
+						} else {
+
 							buttonNotPressed = false;
-							stateOut = buttonNames[i];
+							stateOut = i;
 							remainingTime = seconds[i];
-							
+
 						}
-						
-					}else {
-						
+
+					} else {
+
 					}
 				}
-				
+
 				remainingTime -= designatedTimePeriod;
-				
-				if(remainingTime <= 0) {
-					
+
+				if (remainingTime <= 0) {
+
 					remainingTime = 0;
 					stateOut = stopState;
-					
-				}else {
-					
+
+				} else {
+
 				}
 			}
-			
-		}else {
-			
-			if(stateOut == stopState) {
-				
-				for(int i = 0; i < buttons.length && buttonNotPressed; i++) {
-					
-					if(buttons[i]) {
-						
+
+		} else {
+
+			if (stateOut == stopState) {
+
+				for (int i = 0; i < buttons.length && buttonNotPressed; i++) {
+
+					if (buttons[i]) {
+
 						buttonNotPressed = false;
-						stateOut = buttonNames[i];
+						stateOut = i;
 						currentState = i;
-						
-					}else {
-						
+
+					} else {
+
 					}
 				}
-				
-			}else {
-				
-				for(int i = 0; i < buttons.length && buttonNotPressed; i++) {
-					
-					if(buttons[i]) {
-						
-						if(stateOut == buttonNames[i]) {
-							
+
+			} else {
+
+				for (int i = 0; i < buttons.length && buttonNotPressed; i++) {
+
+					if (buttons[i]) {
+
+						if (stateOut == i) {
+
 							buttonNotPressed = false;
 							stateOut = stopState;
-							
-						}else {
-							
+
+						} else {
+
 							buttonNotPressed = false;
-							stateOut = buttonNames[i];
-							
+							stateOut = 0;
+
 						}
-						
-					}else {
-						
+
+					} else {
+
 					}
 				}
-				
-				if(finishes[currentState]) {
-					
+
+				if (finishes[currentState]) {
+
 					stateOut = stopState;
-					
-				}else {
-					
+
+				} else {
+
 				}
 			}
 		}
-		
+
 		return stateOut;
-		
+
 	}
 }

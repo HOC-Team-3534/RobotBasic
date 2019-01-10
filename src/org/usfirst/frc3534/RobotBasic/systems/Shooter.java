@@ -5,119 +5,71 @@ import org.usfirst.frc3534.RobotBasic.RobotMap;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
-public class Shooter {
-	
+public class Shooter extends SystemBase implements SystemInterface {
+
 	private WPI_TalonSRX shooter = RobotMap.shooter;
-	
-	public String state = "stop";
-	
-	public String autonState = "stop";
-	
+
+	private final int SHOOT = 0;
+	private final int INTAKE = 1;
+	private final int STOP = 2;
+	private final int[] states = { SHOOT, INTAKE, STOP };
+
 	private double shooterPower = 0;
-	
-	private String[] buttonNames = {"shoot", "intake"};
-	
-	private double[] buttonPowers = {0.5, -0.5};
-	
-	private double[] buttonTimes = {0.5, 0.75};
-	
+
+	private double[] buttonPowers = { 0.5, -0.5 };
+
+	private double[] buttonTimes = { 0.5, 0.75 };
+
 	ButtonProcess shooterButton;
-	
+
 	public Shooter() {
-		
-		shooterButton = new ButtonProcess(buttonNames, buttonTimes, "stop", Robot.designatedLoopPeriod / 1000);
-		
+
+		this.setButtonProcess(buttonTimes, STOP, Robot.designatedLoopPeriod / 1000);
+		this.setStates(states);
+
 	}
-	
+
+	@Override
 	public void process() {
-		
-		if(Robot.teleop && Robot.enabled) {
-			
-			boolean[] buttons = {Robot.oi.getController1().getAButtonPressed(), Robot.oi.getController1().getBButtonPressed()};
-			
-			switch(shooterButton.process(buttons)) {
-			
-			/*
-			 * for each case, type "caseName" from buttonNames in order, preferably
-			 * 
-			 * KEEP STOP CASE
-			 */
-			case "shoot":
-				
-				shooterPower = buttonPowers[0];
-				
-				break;
-				
-			case "intake":
-				
-				shooterPower = buttonPowers[1];
-				
-				break;
-				
-			case "stop":
-				
-				shooterPower = 0;
-				
-				break;
-			
-			default:
-				
-				shooterPower = 0;
-			
-			}
-			
-		}else if(Robot.autonomous) {
-			
-			switch(autonState) {
-			
-			/*
-			 * for each case, type "caseName" from buttonNames in order, preferably
-			 * 
-			 * KEEP STOP CASE
-			 */
-			case "shoot":
-				
-				shooterPower = buttonPowers[0];
-				
-				break;
-				
-			case "intake":
-				
-				shooterPower = buttonPowers[1];
-				
-				break;
-				
-			case "stop":
-				
-				shooterPower = 0;
-				
-				break;
-			
-			default:
-				
-				shooterPower = 0;
-			
-			}
-			
-		}else {
-			
+
+		boolean[] buttons = { Robot.oi.getController1().getAButtonPressed(),
+				Robot.oi.getController1().getBButtonPressed() };
+
+		this.buttonProcess(buttons);
+
+		switch (this.getState()) {
+
+		/*
+		 * for each case, type the name of the integer for each state in order,
+		 * preferably
+		 * 
+		 * KEEP STOP CASE
+		 */
+		case SHOOT:
+
+			shooterPower = buttonPowers[0];
+
+			break;
+
+		case INTAKE:
+
+			shooterPower = buttonPowers[1];
+
+			break;
+
+		case STOP:
+
 			shooterPower = 0;
-			
+
+			break;
+
+		default:
+
+			shooterPower = 0;
+
 		}
-		
+
 		shooter.set(shooterPower);
-		
-	}
-	
-	public void setShooterPower(String state) {
-		
-		autonState = state;
-		
-	}
-	
-	public String getShooterPower() {
-		
-		return autonState;
-		
+
 	}
 }
