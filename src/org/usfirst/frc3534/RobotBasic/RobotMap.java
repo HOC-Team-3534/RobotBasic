@@ -42,18 +42,18 @@ public class RobotMap {
 	public static void init() {
 
 		frontRightMotor = new WPI_TalonSRX(5);
-		frontRightMotor.set(ControlMode.PercentOutput, 1);
+		frontRightMotor.set(ControlMode.PercentOutput, 0);
 		frontRightMotor.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 0);
 
 		backRightMotor = new WPI_TalonSRX(6);
-		backRightMotor.set(ControlMode.PercentOutput, 1);
+		backRightMotor.set(ControlMode.PercentOutput, 0);
 
 		frontLeftMotor = new WPI_TalonSRX(1);
-		frontLeftMotor.set(ControlMode.PercentOutput, 1);
+		frontLeftMotor.set(ControlMode.PercentOutput, 0);
 		frontLeftMotor.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 0);
 
 		backLeftMotor = new WPI_TalonSRX(2);
-		backLeftMotor.set(ControlMode.PercentOutput, 1);
+		backLeftMotor.set(ControlMode.PercentOutput, 0);
 
 		rightSideMotors = new SpeedControllerGroup(frontRightMotor, backRightMotor);
 		leftSideMotors = new SpeedControllerGroup(frontLeftMotor, backLeftMotor);
