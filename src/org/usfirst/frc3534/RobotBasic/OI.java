@@ -1,5 +1,9 @@
 package org.usfirst.frc3534.RobotBasic;
 
+import java.util.concurrent.Callable;
+
+import edu.wpi.first.wpilibj.GenericHID.Hand;
+
 /**
  * This class is the glue that binds the controls on the physical operator
  * interface to the commands and command groups that allow control of the robot.
@@ -32,8 +36,8 @@ public class OI {
 	// until it is finished as determined by it's isFinished method.
 	// button.whenReleased(new ExampleCommand());
 
-	XboxPlusPOV xbox1 = new XboxPlusPOV(0);
-	XboxPlusPOV xbox2 = new XboxPlusPOV(1);
+	final XboxPlusPOV xbox1 = new XboxPlusPOV(0);
+	final XboxPlusPOV xbox2 = new XboxPlusPOV(1);
 
 	public OI() {
 
@@ -50,6 +54,103 @@ public class OI {
 	public XboxPlusPOV getController2() {
 
 		return xbox2;
+
+	}
+
+	public static enum Buttons {
+
+		Shoot(new Callable<Boolean>(){
+
+            @Override
+            public Boolean call() throws Exception{
+
+                return Boolean.valueOf(Robot.oi.getController1().getAButton());
+
+            }
+
+        }),
+		Intake(new Callable<Boolean>(){
+
+            @Override
+            public Boolean call() throws Exception{
+
+                return Boolean.valueOf(Robot.oi.getController1().getBButton());
+
+            }
+
+        });
+		
+		/** Add in Functions Buttons here */
+
+        Callable<Boolean> callable;
+
+		private Buttons(Callable<Boolean> callable){
+
+            this.callable = callable;
+
+        }
+        
+        public boolean getButton(){
+
+            try{
+
+                return callable.call().booleanValue();
+
+            }catch(Exception ex){
+
+                return false;
+
+            }
+
+        }
+
+    }
+    
+    public static enum Axes {
+		Drive_ForwardBackward(new Callable<Double>(){
+
+            @Override
+            public Double call() throws Exception{
+
+                return -Robot.oi.getController1().getY(Hand.kLeft);
+
+            }
+
+		}),
+		Drive_LeftRight(new Callable<Double>(){
+
+            @Override
+            public Double call() throws Exception{
+
+                return Robot.oi.getController1().getX(Hand.kLeft);
+
+            }
+
+		});
+		
+		/** Add in Function Axes here */
+
+        Callable<Double> callable;
+
+		private Axes(Callable<Double> callable){
+
+            this.callable = callable;
+
+        }
+        
+        public double getAxis(){
+
+            try{
+
+                return callable.call().doubleValue();
+
+            }catch(Exception ex){
+
+                return 0.0;
+
+            }
+
+        }
 
 	}
 }

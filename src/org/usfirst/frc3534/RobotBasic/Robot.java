@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
+import org.usfirst.frc3534.RobotBasic.functions.FunctionProcessor;
 import org.usfirst.frc3534.RobotBasic.systems.*;
 
 import Autons.AutonStateMachine0;
@@ -24,6 +25,7 @@ public class Robot extends TimedRobot {
 	public static OI oi;
 	public static Drive drive;
 	public static Shooter shooter;
+	public static FunctionProcessor functionProcessor;
 
 	private int loopPeriod = 0;
 	private int loopCnt = 0;
@@ -56,6 +58,7 @@ public class Robot extends TimedRobot {
 		// pointers. Bad news. Don't move it.
 		oi = new OI();
 
+		functionProcessor = new FunctionProcessor();
 	}
 
 	/**
@@ -181,7 +184,9 @@ public class Robot extends TimedRobot {
 
 				// run processes
 				drive.process();
+				functionProcessor.process();
 				shooter.process();
+				/** Run subsystem process methods here */
 
 			}
 

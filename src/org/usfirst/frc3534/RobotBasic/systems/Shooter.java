@@ -1,6 +1,5 @@
 package org.usfirst.frc3534.RobotBasic.systems;
 
-import org.usfirst.frc3534.RobotBasic.Robot;
 import org.usfirst.frc3534.RobotBasic.RobotMap;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
@@ -9,67 +8,63 @@ public class Shooter extends SystemBase implements SystemInterface {
 
 	private WPI_TalonSRX shooter = RobotMap.shooter;
 
-	private final int SHOOT = 0;
-	private final int INTAKE = 1;
-	private final int STOP = 2;
-	private final int[] states = { SHOOT, INTAKE, STOP };
+    ShooterState shooterState = ShooterState.STOP;
 
-	private double shooterPower = 0;
+    public Shooter(){
 
-	private double[] buttonPowers = { 0.5, -0.5 };
+    }
 
-	private double[] buttonTimes = { 0.5, 0.75 };
+    @Override
+    public void process(){
 
-	ButtonProcess shooterButton;
+        switch(shooterState){
+        case INTAKE:
 
-	public Shooter() {
+            setShooterPower(shooterState.value);    
 
-		this.setButtonProcess(buttonTimes, STOP, Robot.designatedLoopPeriod / 1000);
-		this.setStates(states);
+            break;
 
-	}
+        case SHOOT:
 
-	@Override
-	public void process() {
+            setShooterPower(shooterState.value); 
 
-		boolean[] buttons = { Robot.oi.getController1().getAButtonPressed(),
-				Robot.oi.getController1().getBButtonPressed() };
+            break;
 
-		this.buttonProcess(buttons);
+        case STOP:
 
-		switch (this.getState()) {
+            setShooterPower(shooterState.value); 
 
-		/*
-		 * for each case, type the name of the integer for each state in order,
-		 * preferably
-		 * 
-		 * KEEP STOP CASE
-		 */
-		case SHOOT:
+            break;
 
-			shooterPower = buttonPowers[0];
+        }
 
-			break;
+    }
 
-		case INTAKE:
+    public enum ShooterState{
+        
+        INTAKE(RobotMap.PowerOutput.shooter_shooter_intake.power),
+        SHOOT(RobotMap.PowerOutput.shooter_shooter_shoot.power),
+        STOP(RobotMap.PowerOutput.shooter_shooter_stop.power);
 
-			shooterPower = buttonPowers[1];
+        double value;
 
-			break;
+        private ShooterState(double value){
 
-		case STOP:
+            this.value = value;
 
-			shooterPower = 0;
+        }
 
-			break;
+    }
 
-		default:
+    public void setShooterState(ShooterState state){
 
-			shooterPower = 0;
+        shooterState = state;
 
-		}
+    }
 
-		shooter.set(shooterPower);
+    private void setShooterPower(double power){
 
-	}
+        shooter.set(power);
+
+    }
 }
