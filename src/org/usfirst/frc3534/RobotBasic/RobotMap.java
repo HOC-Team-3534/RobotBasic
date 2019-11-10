@@ -65,6 +65,9 @@ public class RobotMap {
 		backLeftMotor.setNeutralMode(NeutralMode.Brake);
 		backLeftMotor.set(ControlMode.PercentOutput, 0);
 
+		shooter = new WPI_TalonSRX(6);
+		shooter.set(ControlMode.PercentOutput, 0);
+
 		backRightMotor = new WPI_TalonSRX((8));
 		backRightMotor.setNeutralMode(NeutralMode.Brake);
 		backRightMotor.set(ControlMode.PercentOutput, 0);
