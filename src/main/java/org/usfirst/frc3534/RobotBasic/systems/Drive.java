@@ -2,11 +2,14 @@ package org.usfirst.frc3534.RobotBasic.systems;
 
 import org.usfirst.frc3534.RobotBasic.Robot;
 import org.usfirst.frc3534.RobotBasic.RobotMap;
+import org.usfirst.frc3534.RobotBasic.OI.Axes;
 
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 
 public class Drive extends SystemBase implements SystemInterface {
 
@@ -57,7 +60,7 @@ public class Drive extends SystemBase implements SystemInterface {
 			double skew = table.getEntry("ts").getDouble(0.0);
 			double width = table.getEntry("thor").getDouble(0.0);
 
-			if(Axes.DriverTargetMode.getAxis() >= 0.5){
+			/*if(Axes.DriverTargetMode.getAxis() >= 0.5){
 
 				double heading_error = tx;
 				double distance_error = 0.0;
@@ -184,7 +187,7 @@ public class Drive extends SystemBase implements SystemInterface {
 
 				drive.tankDrive(left_command, right_command);
 
-			}else{
+			}else{*/
 
 				RobotMap.blinkin.set(0.55); //color waves of team colors
 
@@ -234,7 +237,7 @@ public class Drive extends SystemBase implements SystemInterface {
 
 				}
 
-			}
+			//}
 
 
 		} else if (Robot.autonomous) {

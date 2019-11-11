@@ -1,7 +1,6 @@
 package org.usfirst.frc3534.RobotBasic.functions;
 
 import org.usfirst.frc3534.RobotBasic.Robot;
-import org.usfirst.frc3534.RobotBasic.systems.Arduino.LEDState;
 
 public class FunctionProcessor{
 

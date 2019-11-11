@@ -84,7 +84,6 @@ public class RobotMap {
 		leftSideMotors = new SpeedControllerGroup(frontLeftMotor, centerLeftMotor, backLeftMotor);
 		
 		blinkin = new Spark(1);
-		pidArm.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 0);
 
 		navx = new AHRS(SPI.Port.kMXP);
 

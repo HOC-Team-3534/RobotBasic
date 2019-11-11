@@ -47,7 +47,7 @@ public class Shoot extends FunctionBase implements FunctionInterface{
 
         case 20:
 
-            if(System.currentTimeMillis() - originalTime > FunctionStateDelay.Shoot_shooterShoot_to_shooterStop.time){
+            if(System.currentTimeMillis() - originalTime > 3000){
 
                 this.state = 30;
 

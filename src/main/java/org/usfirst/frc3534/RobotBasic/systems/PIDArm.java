@@ -9,12 +9,11 @@ import edu.wpi.first.wpilibj.GenericHID.Hand;
 
 public class PIDArm extends SystemBase implements SystemInterface {
 
-	private WPI_TalonSRX arm = RobotMap.pidArm;
+	private WPI_TalonSRX arm;
 
 	private final int MOVE = 0;
 	private final int STABILIZE = 1;
 	private final int STOP = 2;
-	private final int[] states = { MOVE, STABILIZE, STOP };
 	
 	private final double maxArmVelocity = 8;
 	private final double armLength = 25;
@@ -25,7 +24,6 @@ public class PIDArm extends SystemBase implements SystemInterface {
 
 	public PIDArm() {
 
-		this.setStates(states);
 		pidArmEP.configurePIDVA(0.8, 0.0, 1 / maxArmVelocity);
 		pidArmEP.configureEncoder(arm.getSensorCollection().getQuadraturePosition(), RobotMap.countsPerRevEncoders, armLength * 2, .020);
 
@@ -39,15 +37,14 @@ public class PIDArm extends SystemBase implements SystemInterface {
 
 		if (Math.abs(axisInput) >= .05) {
 
-			this.setState(MOVE);
 
 		} else {
 
-			this.setState(STABILIZE);
 
 		}
 
-		switch (this.getState()) {
+		/*
+		switch () {
 
 		case MOVE:
 			
@@ -87,7 +84,7 @@ public class PIDArm extends SystemBase implements SystemInterface {
 
 			break;
 
-		}
+		}*/
 		
 		arm.set(armPower);
 
