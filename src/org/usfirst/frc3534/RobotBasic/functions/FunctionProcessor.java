@@ -5,36 +5,25 @@ import org.usfirst.frc3534.RobotBasic.systems.Arduino.LEDState;
 
 public class FunctionProcessor{
 
-    CargoIntakeFloor cargoIntakeFloor;
-    CargoIntakeTop cargoIntakeTop;
-    Elevate elevate;
-    HatchPlace hatchPlace;
-    HatchPickUp hatchPickUp;
-    CargoShoot cargoShoot;
-    //Compressor compressor;
+    /**
+     * Create a new variable of each of the functions
+     */
 
     public FunctionProcessor(){
 
-        cargoIntakeFloor = new CargoIntakeFloor();
-        cargoIntakeTop = new CargoIntakeTop();
-        elevate = new Elevate();
-        hatchPlace = new HatchPlace();
-        hatchPickUp = new HatchPickUp();
-        cargoShoot = new CargoShoot();
-        //compressor = new Compressor();
+       /**
+        * Instantiate each of the functions
+        */
 
     }
 
     public void process(){
 
-        Robot.arduino.setLEDState(LEDState.BLUE);
-        cargoIntakeFloor.process();
-        cargoIntakeTop.process();
-        hatchPlace.process();
-        hatchPickUp.process();
-        cargoShoot.process();
-        elevate.process();
-        //compressor.process();
+       /**
+        * Call all of the process methods in each of the functions
+        * Pay special attention to the order in which the function
+        * methods are called
+        */
 
     }
 }
