@@ -229,7 +229,7 @@ public class Drive extends SystemBase implements SystemInterface {
 
 				if(Robot.oi.getController1().getTriggerAxis(Hand.kRight) >= 0.5){
 					
-					drive.arcadeDrive(yOut * 0.6, xOut * 0.5);;
+					drive.arcadeDrive(yOut * 0.6, xOut * 0.5);
 
 				}else{
 
