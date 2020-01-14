@@ -25,7 +25,7 @@ public class PIDArm extends SystemBase implements SystemInterface {
 	public PIDArm() {
 
 		pidArmEP.configurePIDVA(0.8, 0.0, 1 / maxArmVelocity);
-		pidArmEP.configureEncoder(arm.getSensorCollection().getQuadraturePosition(), RobotMap.ticksPerRotation, armLength * 2, .020);
+		pidArmEP.configureEncoder(arm.getSensorCollection().getQuadraturePosition(), RobotMap.ticksPerMotorRotation, armLength * 2, .020);
 
 	}
 
