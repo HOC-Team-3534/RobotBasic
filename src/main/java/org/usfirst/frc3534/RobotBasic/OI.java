@@ -126,6 +126,16 @@ public class OI {
 
             }
 
+		}),
+		Drive_Rotation(new Callable<Double>(){
+
+            @Override
+            public Double call() throws Exception{
+
+                return -Robot.oi.getController1().getX(Hand.kRight);
+
+            }
+
 		});
 		
 		/** Add in Function Axes here */

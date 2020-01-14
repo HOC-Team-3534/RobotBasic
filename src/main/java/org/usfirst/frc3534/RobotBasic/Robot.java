@@ -213,6 +213,11 @@ public class Robot extends TimedRobot {
 			SmartDashboard.putNumber("Loop Count", loopCnt);
 			SmartDashboard.putNumber("autonMode", 0);
 
+			SmartDashboard.putNumber("Left Front Encoder Position", RobotMap.frontLeftMotor.getSensorCollection().getQuadraturePosition());
+			SmartDashboard.putNumber("Left Rear Encoder Position", RobotMap.backLeftMotor.getSensorCollection().getQuadraturePosition());
+			SmartDashboard.putNumber("Right Front Encoder Position", RobotMap.frontRightMotor.getSensorCollection().getQuadraturePosition());
+			SmartDashboard.putNumber("Right Rear Encoder Position", RobotMap.backRightMotor.getSensorCollection().getQuadraturePosition());
+
 			logCounter = 0;
 
 		}

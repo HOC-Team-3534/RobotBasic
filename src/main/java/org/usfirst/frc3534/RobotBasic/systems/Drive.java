@@ -1,21 +1,36 @@
 package org.usfirst.frc3534.RobotBasic.systems;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+
 import org.usfirst.frc3534.RobotBasic.Robot;
 import org.usfirst.frc3534.RobotBasic.RobotMap;
 import org.usfirst.frc3534.RobotBasic.OI.Axes;
 
 import edu.wpi.first.wpilibj.GenericHID.Hand;
-import edu.wpi.first.wpilibj.SpeedControllerGroup;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.drive.MecanumDrive;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.geometry.Translation2d;
+import edu.wpi.first.wpilibj.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.kinematics.MecanumDriveKinematics;
+import edu.wpi.first.wpilibj.kinematics.MecanumDriveOdometry;
+import edu.wpi.first.wpilibj.kinematics.MecanumDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 
 public class Drive extends SystemBase implements SystemInterface {
 
-	private SpeedControllerGroup rightSide = RobotMap.rightSideMotors;
-	private SpeedControllerGroup leftSide = RobotMap.leftSideMotors;
-	private DifferentialDrive drive;
+	private MecanumDrive drive;
+	private WPI_TalonSRX frontLeft = RobotMap.frontLeftMotor, frontRight = RobotMap.frontRightMotor, backLeft = RobotMap.backLeftMotor, backRight = RobotMap.backRightMotor;
+
+	private final Translation2d frontLeftLocation = new Translation2d(0.381, 0.381);
+	private final Translation2d frontRightLocation = new Translation2d(0.381, -0.381);
+	private final Translation2d backLeftLocation = new Translation2d(-0.381, 0.381);
+	private final Translation2d backRightLocation = new Translation2d(-0.381, -0.381);
+
+	private final MecanumDriveKinematics kinematics = new MecanumDriveKinematics(frontLeftLocation, frontRightLocation, backLeftLocation, backRightLocation);
+	private final MecanumDriveOdometry odometry = new MecanumDriveOdometry(kinematics, getAngle());
 
 	private double rightPower, leftPower;
 
@@ -23,8 +38,8 @@ public class Drive extends SystemBase implements SystemInterface {
 	private double turningDeadband = 0.20;		//the deadband on the controller (left/right)
 	private boolean negative = false;
 
-	private double yInput, xInput;				//used to store the direct input value of the respective axis on the controller
-	private double yOut, xOut;					//used to save the percentage output calculated from the initial inputs
+	private double longitudinal_input, latitudinal_input, rotational_input;			//used to store the direct input value of the respective axis on the controller
+	private double longitudinal_output, latitudinal_output, rotational_output;		//used to save the percentage output calculated from the initial inputs
 
 	private double left_command = 0.0, right_command = 0.0;		//used for autonomous power output
 
@@ -41,10 +56,8 @@ public class Drive extends SystemBase implements SystemInterface {
 
 	public Drive() {
 
-		drive = new DifferentialDrive(leftSide, rightSide);
-		drive.setSafetyEnabled(true);
-		drive.setMaxOutput(1.0);
-
+		drive = new MecanumDrive(frontLeft, backLeft, frontRight, backRight);
+		
 	}
 
 	@Override
@@ -192,48 +205,51 @@ public class Drive extends SystemBase implements SystemInterface {
 				RobotMap.blinkin.set(0.55); //color waves of team colors
 
 				negative = false;
-				yInput = Axes.Drive_ForwardBackward.getAxis();
-				if(yInput < 0) negative = true;
+				longitudinal_input = Axes.Drive_ForwardBackward.getAxis();
+				if(longitudinal_input < 0) negative = true;
 
-				yOut = Math.abs(yInput);
+				longitudinal_output = Math.abs(longitudinal_input);
 
-				if(yOut > deadband){
+				if(longitudinal_output > deadband){
 
-					yOut -= deadband;
-					yOut *= (1 / (1 - deadband));
-					yOut = Math.pow(yOut, 2) * (1 - RobotMap.minMoveSpeed) + RobotMap.minMoveSpeed;
-					if(negative) yOut = -yOut;
+					longitudinal_output -= deadband;
+					longitudinal_output *= (1 / (1 - deadband));
+					longitudinal_output = Math.pow(longitudinal_output, 2) * (1 - RobotMap.minMoveSpeed) + RobotMap.minMoveSpeed;
+					if(negative) longitudinal_output = -longitudinal_output;
 
 				}else{
 
-					yOut = 0;
+					longitudinal_output = 0;
 
 				}
 
 				negative = false;
-				xInput = Axes.Drive_LeftRight.getAxis();
-				if(xInput < 0) negative = true;
+				latitudinal_input = Axes.Drive_LeftRight.getAxis();
+				if(latitudinal_input < 0) negative = true;
 				
-				xOut = Math.abs(xInput);
-				if(xOut > turningDeadband){
+				latitudinal_output = Math.abs(latitudinal_input);
+				if(latitudinal_output > turningDeadband){
 
-					xOut -= turningDeadband;
-					xOut *= Math.pow((1 / (1 - turningDeadband)), 2);
-					if(negative) xOut = -xOut;
+					latitudinal_output -= turningDeadband;
+					latitudinal_output *= Math.pow((1 / (1 - turningDeadband)), 2);
+					if(negative) latitudinal_output = -latitudinal_output;
 
 				}else{
 
-					xOut = 0;
+					latitudinal_output = 0;
 
 				}
 
+				rotational_input = Axes.Drive_Rotation.getAxis();
+				rotational_output = rotational_input;
+
 				if(Robot.oi.getController1().getTriggerAxis(Hand.kRight) >= 0.5){
 					
-					drive.arcadeDrive(yOut * 0.6, xOut * 0.5);
+					drive(longitudinal_output * 0.7 * RobotMap.maxVelocity, latitudinal_output * 0.7 * RobotMap.maxVelocity, rotational_output * RobotMap.maxAngularVelocity, true);
 
 				}else{
 
-					drive.arcadeDrive(yOut * 0.9, xOut * 1.0);
+					drive(longitudinal_output * RobotMap.maxVelocity, latitudinal_output * RobotMap.maxVelocity, rotational_output * RobotMap.maxAngularVelocity, true);
 
 				}
 
@@ -242,7 +258,7 @@ public class Drive extends SystemBase implements SystemInterface {
 
 		} else if (Robot.autonomous) {
 
-			drive.tankDrive(leftPower, rightPower);
+			//drive.tankDrive(leftPower, rightPower);
 
 		}
 
@@ -268,6 +284,53 @@ public class Drive extends SystemBase implements SystemInterface {
 
 	}
 
+	/**
+   	* Method to drive the robot using joystick info.
+   	*
+   	* @param xSpeed        Speed of the robot in the x direction (forward).
+   	* @param ySpeed        Speed of the robot in the y direction (sideways).
+   	* @param rot           Angular rate of the robot.
+   	* @param fieldRelative Whether the provided x and y speeds are relative to the field.
+   	*/
+  	@SuppressWarnings("ParameterName")
+  	public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
+
+    	var mecanumDriveWheelSpeeds = kinematics.toWheelSpeeds(
+        	fieldRelative ? ChassisSpeeds.fromFieldRelativeSpeeds(
+            xSpeed, ySpeed, rot, getAngle()
+        	) : new ChassisSpeeds(xSpeed, ySpeed, rot)
+    	);
+    	mecanumDriveWheelSpeeds.normalize(RobotMap.maxVelocity);
+		setSpeeds(mecanumDriveWheelSpeeds);
+		
+  	}
+
+	public MecanumDriveWheelSpeeds getCurrentState() {
+
+		return new MecanumDriveWheelSpeeds(
+			frontLeft.getSensorCollection().getQuadratureVelocity() * RobotMap.encoderVelocityToWheelVelocity,
+			frontRight.getSensorCollection().getQuadratureVelocity() * RobotMap.encoderVelocityToWheelVelocity,
+			backLeft.getSensorCollection().getQuadratureVelocity() * RobotMap.encoderVelocityToWheelVelocity,
+			backRight.getSensorCollection().getQuadratureVelocity() * RobotMap.encoderVelocityToWheelVelocity
+		);
+
+	}
+
+	public void setSpeeds(MecanumDriveWheelSpeeds speeds) {
+	
+		frontLeft.set(ControlMode.Velocity, speeds.frontLeftMetersPerSecond / RobotMap.encoderVelocityToWheelVelocity);
+		frontRight.set(ControlMode.Velocity, speeds.frontRightMetersPerSecond / RobotMap.encoderVelocityToWheelVelocity);
+		backLeft.set(ControlMode.Velocity, speeds.rearLeftMetersPerSecond / RobotMap.encoderVelocityToWheelVelocity);
+		backRight.set(ControlMode.Velocity, speeds.rearRightMetersPerSecond / RobotMap.encoderVelocityToWheelVelocity);
+
+	}
+
+	public void updateOdometry() {
+
+		odometry.update(getAngle(), getCurrentState());
+
+	}
+
 	public void setRightPower(double power) {
 
 		rightPower = power;
@@ -280,9 +343,9 @@ public class Drive extends SystemBase implements SystemInterface {
 
 	}
 
-	public double getNavXAngle(){
+	public Rotation2d getAngle(){
 
-		return RobotMap.navx.getAngle();
+		return Rotation2d.fromDegrees(-RobotMap.navx.getAngle());
 
 	}
 }

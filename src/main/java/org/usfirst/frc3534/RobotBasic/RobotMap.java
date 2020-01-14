@@ -19,69 +19,103 @@ import edu.wpi.first.wpilibj.SpeedControllerGroup;
 public class RobotMap {
 
 	public static WPI_TalonSRX frontLeftMotor;		//1
-	public static WPI_TalonSRX centerLeftMotor;		//2
-	private static WPI_TalonSRX backLeftMotor;		//3
+	//spare talon srx								//2
+	public static WPI_TalonSRX backLeftMotor;		//3
 	//spare talon srx								//4
 	//spare talon srx								//5
 	public static WPI_TalonSRX shooter;				//6
 	//spare talon srx
-	private static WPI_TalonSRX backRightMotor;		//8
-	public static WPI_TalonSRX centerRightMotor;	//9
+	public static WPI_TalonSRX backRightMotor;		//8
+	//spare talon srx								//9
 	public static WPI_TalonSRX frontRightMotor;		//10
 
 	public static Spark blinkin;
-
-	public static SpeedControllerGroup rightSideMotors;
-	public static SpeedControllerGroup leftSideMotors;
 
 	/** EXAMPLE public static DoubleSolenoid elevatorCylinderOne;		//first value -> PCM A, CHANNEL 0, 1 */
 
 
 	public static AHRS navx;
 
-	public static final double wheelBase_width = 36;
-	public static final double robotMaxVeloctiy = 168; // inches per second
+	//public static final double wheelBase_width = 36;
+	//public static final double robotMaxVeloctiy = 168; // inches per second
 	public static final double minMoveSpeed = .375;
+	public static final double maxVelocity = 5.0; //meters per second
+	public static final double maxAngularVelocity = Math.PI; //radians per second
 
 	// Wheel Encoder Calculations
-	public static final int countsPerRevEncoders = 1440; // 1440 if plugged into talon. 360 if directly into the
-															// roborio; just go with, it its weird
-	public static final double wheelDiameter = 6; // measured in inches
-	public static final double inchesPerCountMultiplier = wheelDiameter * Math.PI / countsPerRevEncoders;
-	public static final double codesPer100MillisToInchesPerSecond = inchesPerCountMultiplier * 10;
+	public static final double typicalAcceleration = 0.75; //meters per second per second
+	public static final double robotMass = 18.15; //kg
+	public static final double wheelDiameter = .1524; // measured in meters
+	public static final double gearRatio = 13/93 * 25/50;
+	public static final int ticksPerMotorRotation = 2048; // 2048 for Falcon500 (old ecnoders 1440 if in talon, 360 if into roboRIO)
+	public static final double driveWheelTorque = (wheelDiameter / 2) * (robotMass / 4 * typicalAcceleration) * Math.sin(90);
+	public static final double falconMaxRPM = 6380 - 1 / 0.0007351097 * driveWheelTorque;
+	public static final double maxTicksPer100ms = falconMaxRPM * ticksPerMotorRotation / 60 / 10;
+	public static final double distancePerMotorRotation = gearRatio * wheelDiameter * Math.PI;
+	public static final double encoderVelocityToWheelVelocity =  1 / ticksPerMotorRotation * 10 * distancePerMotorRotation; //encoder ticks per 100ms to meters per second
+	//public static final double inchesPerCountMultiplier = wheelDiameter * Math.PI / ticksPerRotation;
+	//public static final double codesPer100MillisToInchesPerSecond = inchesPerCountMultiplier * 10;
 
 	public static void init() {
 
 		frontLeftMotor = new WPI_TalonSRX(1);
-		frontLeftMotor.setNeutralMode(NeutralMode.Brake);
-		frontLeftMotor.set(ControlMode.PercentOutput, 0);
-		frontLeftMotor.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 0);
-
-		centerLeftMotor = new WPI_TalonSRX(2);
-		centerLeftMotor.setNeutralMode(NeutralMode.Brake);
-		centerLeftMotor.set(ControlMode.PercentOutput, 0);
+		frontLeftMotor.configFactoryDefault(30);
+		frontLeftMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 30);
+		frontLeftMotor.setSensorPhase(true);
+		frontLeftMotor.setInverted(false);
+		frontLeftMotor.configNominalOutputForward(0, 30);
+		frontLeftMotor.configNominalOutputReverse(0, 30);
+		frontLeftMotor.configPeakOutputForward(1, 30);
+		frontLeftMotor.configPeakOutputReverse(-1, 30);
+		frontLeftMotor.config_kF(0, 1023/maxTicksPer100ms, 30);
+		frontLeftMotor.config_kP(0, 0.25, 30);
+		frontLeftMotor.config_kI(0, 0, 30);
+		frontLeftMotor.config_kD(0, 0, 30);
 
 		backLeftMotor = new WPI_TalonSRX(3);
-		backLeftMotor.setNeutralMode(NeutralMode.Brake);
-		backLeftMotor.set(ControlMode.PercentOutput, 0);
+		backLeftMotor.configFactoryDefault(30);
+		backLeftMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 30);
+		backLeftMotor.setSensorPhase(true);
+		backLeftMotor.setInverted(false);
+		backLeftMotor.configNominalOutputForward(0, 30);
+		backLeftMotor.configNominalOutputReverse(0, 30);
+		backLeftMotor.configPeakOutputForward(1, 30);
+		backLeftMotor.configPeakOutputReverse(-1, 30);
+		backLeftMotor.config_kF(0, 1023/maxTicksPer100ms, 30);
+		backLeftMotor.config_kP(0, 0.25, 30);
+		backLeftMotor.config_kI(0, 0, 30);
+		backLeftMotor.config_kD(0, 0, 30);
 
 		shooter = new WPI_TalonSRX(6);
 		shooter.set(ControlMode.PercentOutput, 0);
 
-		backRightMotor = new WPI_TalonSRX((8));
-		backRightMotor.setNeutralMode(NeutralMode.Brake);
-		backRightMotor.set(ControlMode.PercentOutput, 0);
-
-		centerRightMotor = new WPI_TalonSRX((9));
-		centerRightMotor.setNeutralMode(NeutralMode.Brake);
-		centerRightMotor.set(ControlMode.PercentOutput, 0);
+		backRightMotor = new WPI_TalonSRX(8);
+		backRightMotor.configFactoryDefault(30);
+		backRightMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 30);
+		backRightMotor.setSensorPhase(true);
+		backRightMotor.setInverted(true);
+		backRightMotor.configNominalOutputForward(0, 30);
+		backRightMotor.configNominalOutputReverse(0, 30);
+		backRightMotor.configPeakOutputForward(1, 30);
+		backRightMotor.configPeakOutputReverse(-1, 30);
+		backRightMotor.config_kF(0, 1023/maxTicksPer100ms, 30);
+		backRightMotor.config_kP(0, 0.25, 30);
+		backRightMotor.config_kI(0, 0, 30);
+		backRightMotor.config_kD(0, 0, 30);
 
 		frontRightMotor = new WPI_TalonSRX(10);
-		frontRightMotor.set(ControlMode.PercentOutput, 0);
-		frontRightMotor.setNeutralMode(NeutralMode.Brake);
-		frontRightMotor.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 0);
-		rightSideMotors = new SpeedControllerGroup(frontRightMotor, centerRightMotor, backRightMotor);
-		leftSideMotors = new SpeedControllerGroup(frontLeftMotor, centerLeftMotor, backLeftMotor);
+		frontRightMotor.configFactoryDefault(30);
+		frontRightMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 30);
+		frontRightMotor.setSensorPhase(true);
+		frontRightMotor.setInverted(true);
+		frontRightMotor.configNominalOutputForward(0, 30);
+		frontRightMotor.configNominalOutputReverse(0, 30);
+		frontRightMotor.configPeakOutputForward(1, 30);
+		frontRightMotor.configPeakOutputReverse(-1, 30);
+		frontRightMotor.config_kF(0, 1023/maxTicksPer100ms, 30);
+		frontRightMotor.config_kP(0, 0.25, 30);
+		frontRightMotor.config_kI(0, 0, 30);
+		frontRightMotor.config_kD(0, 0, 30);
 		
 		blinkin = new Spark(1);
 
