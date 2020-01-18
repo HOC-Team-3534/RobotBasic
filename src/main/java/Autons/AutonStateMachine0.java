@@ -3,27 +3,20 @@ package Autons;
 import org.usfirst.frc3534.RobotBasic.Robot;
 import org.usfirst.frc3534.RobotBasic.RobotMap;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
-import com.kauailabs.navx.frc.AHRS;
 
 public class AutonStateMachine0 extends AutonStateMachineBase implements AutonStateMachineInterface {
 
 	int state = 1;
 	int stateCnt = 0;
 
-	AHRS navX = RobotMap.navx;
 	WPI_TalonFX frontRight = RobotMap.frontRightMotor;
 	WPI_TalonFX frontLeft = RobotMap.frontLeftMotor;
 
-	int step, posTraj = 1;
-	/*
-	 * step should equal the part that the trajectory as a whole is on. If it has
-	 * five parts, and you are on the second part, make it equal to 2 for that case
-	 * in the switch statement
-	 * 
-	 * posTraj should be made equal to the trajectory number from the trajectory
-	 * visual/emulator. The value is named "posTraj" there as well.
-	 */
+	AutonCalculations part1;
+	double part1Heading = Math.PI / 6;
+	double part1Rotation = Math.PI;
 
 	public AutonStateMachine0() {
 
@@ -37,45 +30,38 @@ public class AutonStateMachine0 extends AutonStateMachineBase implements AutonSt
 		switch (state) {
 
 		case 1:
-
-			/*
-			navX.zeroYaw();
-			frontRight.getSensorCollection().setQuadraturePosition(0, 0);
-			frontLeft.getSensorCollection().setQuadraturePosition(0, 0);
-			*/
+		
+			//any initialization code here
 			nextState = 10;
 			break;
 
 		case 10:
 
-			step = 1;
-			/*
-			rightTraj = reader.getSegments(Reader.Side.right, posTraj, step);
-			leftTraj = reader.getSegments(Reader.Side.left, posTraj, step);
+			//calculate ramping and what not
 
-			rightFollower.setTrajectory(rightTraj);
-			leftFollower.setTrajectory(leftTraj);
+			part1 = new AutonCalculations(10.0, RobotMap.maxVelocity, RobotMap.typicalAcceleration, 0.020);
+			part1.calculate();
 
-			rightFollower.configureEncoder(frontRight.getSensorCollection().getQuadraturePosition(),
-					RobotMap.countsPerRevEncoders, RobotMap.wheelDiameter);
-			leftFollower.configureEncoder(frontLeft.getSensorCollection().getQuadraturePosition(),
-					RobotMap.countsPerRevEncoders, RobotMap.wheelDiameter);
-			*/
 			nextState = 20;
 			break;
 
 		case 20:
-			/*
-			Robot.drive
-					.setRightPower(rightFollower.calculate(frontRight.getSensorCollection().getQuadraturePosition()));
-			Robot.drive.setLeftPower(leftFollower.calculate(frontLeft.getSensorCollection().getQuadraturePosition()));
+			
+			//drive
+			double generalVelocity = part1.getVelocity();
+			Robot.drive.drive(generalVelocity * Math.cos(part1Heading), generalVelocity * Math.sin(part1Heading), part1Rotation / part1.total_time, true);
 
-			if (rightFollower.isFinished() && leftFollower.isFinished()) {
+			if(part1.isFinished()){
 				nextState = 100;
-			}*/
+			}
 			break;
 
 		case 100:
+
+			RobotMap.frontLeftMotor.set(ControlMode.Velocity, 0);
+			RobotMap.frontRightMotor.set(ControlMode.Velocity, 0);
+			RobotMap.backLeftMotor.set(ControlMode.Velocity, 0);
+			RobotMap.backRightMotor.set(ControlMode.Velocity, 0);
 
 			break;
 		}
