@@ -1,7 +1,7 @@
 package org.usfirst.frc3534.RobotBasic.systems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
 import org.usfirst.frc3534.RobotBasic.Robot;
 import org.usfirst.frc3534.RobotBasic.RobotMap;
@@ -21,8 +21,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 
 public class Drive extends SystemBase implements SystemInterface {
 
-	private MecanumDrive drive;
-	private WPI_TalonSRX frontLeft = RobotMap.frontLeftMotor, frontRight = RobotMap.frontRightMotor, backLeft = RobotMap.backLeftMotor, backRight = RobotMap.backRightMotor;
+	private WPI_TalonFX frontLeft = RobotMap.frontLeftMotor, frontRight = RobotMap.frontRightMotor, backLeft = RobotMap.backLeftMotor, backRight = RobotMap.backRightMotor;
 
 	private final Translation2d frontLeftLocation = new Translation2d(0.381, 0.381);
 	private final Translation2d frontRightLocation = new Translation2d(0.381, -0.381);
@@ -55,8 +54,6 @@ public class Drive extends SystemBase implements SystemInterface {
 	private double max_side_to_side_correction = 0.2;
 
 	public Drive() {
-
-		drive = new MecanumDrive(frontLeft, backLeft, frontRight, backRight);
 		
 	}
 
@@ -308,20 +305,20 @@ public class Drive extends SystemBase implements SystemInterface {
 	public MecanumDriveWheelSpeeds getCurrentState() {
 
 		return new MecanumDriveWheelSpeeds(
-			frontLeft.getSensorCollection().getQuadratureVelocity() * RobotMap.encoderVelocityToWheelVelocity,
-			frontRight.getSensorCollection().getQuadratureVelocity() * RobotMap.encoderVelocityToWheelVelocity,
-			backLeft.getSensorCollection().getQuadratureVelocity() * RobotMap.encoderVelocityToWheelVelocity,
-			backRight.getSensorCollection().getQuadratureVelocity() * RobotMap.encoderVelocityToWheelVelocity
+			frontLeft.getSelectedSensorVelocity() / RobotMap.encoderVelocityToWheelVelocity,
+			frontRight.getSelectedSensorVelocity() / RobotMap.encoderVelocityToWheelVelocity,
+			backLeft.getSelectedSensorVelocity() / RobotMap.encoderVelocityToWheelVelocity,
+			backRight.getSelectedSensorVelocity() / RobotMap.encoderVelocityToWheelVelocity
 		);
 
 	}
 
-	public void setSpeeds(MecanumDriveWheelSpeeds speeds) {
+	public void setSpeeds(MecanumDriveWheelSpeeds speeds) {	
 	
-		frontLeft.set(ControlMode.Velocity, speeds.frontLeftMetersPerSecond / RobotMap.encoderVelocityToWheelVelocity);
-		frontRight.set(ControlMode.Velocity, speeds.frontRightMetersPerSecond / RobotMap.encoderVelocityToWheelVelocity);
-		backLeft.set(ControlMode.Velocity, speeds.rearLeftMetersPerSecond / RobotMap.encoderVelocityToWheelVelocity);
-		backRight.set(ControlMode.Velocity, speeds.rearRightMetersPerSecond / RobotMap.encoderVelocityToWheelVelocity);
+		frontLeft.set(ControlMode.Velocity, speeds.frontLeftMetersPerSecond * RobotMap.encoderVelocityToWheelVelocity);
+		frontRight.set(ControlMode.Velocity, speeds.frontRightMetersPerSecond * RobotMap.encoderVelocityToWheelVelocity);
+		backLeft.set(ControlMode.Velocity, speeds.rearLeftMetersPerSecond * RobotMap.encoderVelocityToWheelVelocity);
+		backRight.set(ControlMode.Velocity, speeds.rearRightMetersPerSecond * RobotMap.encoderVelocityToWheelVelocity);
 
 	}
 

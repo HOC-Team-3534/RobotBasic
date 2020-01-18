@@ -5,6 +5,8 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Notifier;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
+
 import org.usfirst.frc3534.RobotBasic.functions.FunctionProcessor;
 import org.usfirst.frc3534.RobotBasic.systems.*;
 
@@ -73,6 +75,11 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void disabledInit() {
+
+		RobotMap.frontLeftMotor.set(ControlMode.Velocity, 0);
+		RobotMap.frontRightMotor.set(ControlMode.Velocity, 0);
+		RobotMap.backLeftMotor.set(ControlMode.Velocity, 0);
+		RobotMap.backRightMotor.set(ControlMode.Velocity, 0);
 
 	}
 
@@ -144,7 +151,7 @@ public class Robot extends TimedRobot {
 
 				// run processes
 				drive.process();
-				shooter.process();
+				//shooter.process();
 				autonStateMachine.process();
 
 			}
@@ -188,7 +195,7 @@ public class Robot extends TimedRobot {
 
 				// run processes
 				drive.process();
-				shooter.process();
+				//shooter.process();
 				functionProcessor.process();
 				/** Run subsystem process methods here */
 
@@ -213,10 +220,10 @@ public class Robot extends TimedRobot {
 			SmartDashboard.putNumber("Loop Count", loopCnt);
 			SmartDashboard.putNumber("autonMode", 0);
 
-			SmartDashboard.putNumber("Left Front Encoder Position", RobotMap.frontLeftMotor.getSensorCollection().getQuadraturePosition());
-			SmartDashboard.putNumber("Left Rear Encoder Position", RobotMap.backLeftMotor.getSensorCollection().getQuadraturePosition());
-			SmartDashboard.putNumber("Right Front Encoder Position", RobotMap.frontRightMotor.getSensorCollection().getQuadraturePosition());
-			SmartDashboard.putNumber("Right Rear Encoder Position", RobotMap.backRightMotor.getSensorCollection().getQuadraturePosition());
+			SmartDashboard.putNumber("Left Front Encoder Position", RobotMap.frontLeftMotor.getSelectedSensorVelocity());
+			SmartDashboard.putNumber("Left Rear Encoder Position", RobotMap.backLeftMotor.getSelectedSensorVelocity());
+			SmartDashboard.putNumber("Right Front Encoder Position", RobotMap.frontRightMotor.getSelectedSensorVelocity());
+			SmartDashboard.putNumber("Right Rear Encoder Position", RobotMap.backRightMotor.getSelectedSensorVelocity());
 
 			logCounter = 0;
 
@@ -227,8 +234,8 @@ public class Robot extends TimedRobot {
 		if (m_left_follower.isFinished() || m_right_follower.isFinished()) {
 		  m_follower_notifier.stop();
 		} else {
-		  double left_speed = m_left_follower.calculate(RobotMap.frontRightMotor.getSensorCollection().getQuadraturePosition());
-		  double right_speed = m_right_follower.calculate(RobotMap.frontLeftMotor.getSensorCollection().getQuadraturePosition());
+		  double left_speed = m_left_follower.calculate(RobotMap.frontRightMotor.getSelectedSensorPosition());
+		  double right_speed = m_right_follower.calculate(RobotMap.frontLeftMotor.getSelectedSensorPosition());
 		  double heading = RobotMap.navx.getAngle();
 		  double desired_heading = Pathfinder.r2d(m_left_follower.getHeading());
 		  double heading_difference = Pathfinder.boundHalfDegrees(desired_heading - heading);
@@ -249,11 +256,11 @@ public class Robot extends TimedRobot {
 		double k_wheel_diameter = 6.0;
 		double k_max_velocity = 160.0;
 	
-		m_left_follower.configureEncoder(RobotMap.frontLeftMotor.getSensorCollection().getQuadraturePosition(), k_ticks_per_rev, k_wheel_diameter);
+		m_left_follower.configureEncoder(RobotMap.frontLeftMotor.getSelectedSensorPosition(), k_ticks_per_rev, k_wheel_diameter);
 		// You must tune the PID values on the following line!
 		m_left_follower.configurePIDVA(1.0, 0.0, 0.0, 1 / k_max_velocity, 0);
 	
-		m_right_follower.configureEncoder(RobotMap.frontRightMotor.getSensorCollection().getQuadraturePosition(), k_ticks_per_rev, k_wheel_diameter);
+		m_right_follower.configureEncoder(RobotMap.frontRightMotor.getSelectedSensorPosition(), k_ticks_per_rev, k_wheel_diameter);
 		// You must tune the PID values on the following line!
 		m_right_follower.configurePIDVA(1.0, 0.0, 0.0, 1 / k_max_velocity, 0);
 		

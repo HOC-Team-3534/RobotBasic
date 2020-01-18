@@ -122,7 +122,7 @@ public class OI {
             @Override
             public Double call() throws Exception{
 
-                return Robot.oi.getController1().getX(Hand.kLeft);
+                return -Robot.oi.getController1().getX(Hand.kLeft);
 
             }
 
