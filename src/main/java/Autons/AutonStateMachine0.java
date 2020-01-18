@@ -3,7 +3,7 @@ package Autons;
 import org.usfirst.frc3534.RobotBasic.Robot;
 import org.usfirst.frc3534.RobotBasic.RobotMap;
 
-import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.kauailabs.navx.frc.AHRS;
 
 public class AutonStateMachine0 extends AutonStateMachineBase implements AutonStateMachineInterface {
@@ -12,8 +12,8 @@ public class AutonStateMachine0 extends AutonStateMachineBase implements AutonSt
 	int stateCnt = 0;
 
 	AHRS navX = RobotMap.navx;
-	WPI_TalonSRX frontRight = RobotMap.frontRightMotor;
-	WPI_TalonSRX frontLeft = RobotMap.frontLeftMotor;
+	WPI_TalonFX frontRight = RobotMap.frontRightMotor;
+	WPI_TalonFX frontLeft = RobotMap.frontLeftMotor;
 
 	int step, posTraj = 1;
 	/*
