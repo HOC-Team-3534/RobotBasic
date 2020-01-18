@@ -2,11 +2,12 @@ package org.usfirst.frc3534.RobotBasic.systems;
 
 import org.usfirst.frc3534.RobotBasic.RobotMap;
 
-import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
 public class Shooter extends SystemBase implements SystemInterface {
 
-	private WPI_TalonSRX shooter = RobotMap.shooter;
+	private WPI_TalonFX shooter = RobotMap.shooter;
 
     ShooterState shooterState = ShooterState.STOP;
 
@@ -18,12 +19,6 @@ public class Shooter extends SystemBase implements SystemInterface {
     public void process(){
 
         switch(shooterState){
-        case INTAKE:
-
-            setShooterPower(shooterState.value);    
-
-            break;
-
         case SHOOT:
 
             setShooterPower(shooterState.value); 
@@ -42,7 +37,6 @@ public class Shooter extends SystemBase implements SystemInterface {
 
     public enum ShooterState{
         
-        INTAKE(RobotMap.PowerOutput.shooter_shooter_intake.power),
         SHOOT(RobotMap.PowerOutput.shooter_shooter_shoot.power),
         STOP(RobotMap.PowerOutput.shooter_shooter_stop.power);
 
@@ -64,7 +58,7 @@ public class Shooter extends SystemBase implements SystemInterface {
 
     private void setShooterPower(double power){
 
-        shooter.set(power);
+        shooter.set(ControlMode.Velocity, power);
 
     }
 }
