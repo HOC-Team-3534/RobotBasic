@@ -33,8 +33,9 @@ public class Drive extends SystemBase implements SystemInterface {
 
 	private double rightPower, leftPower;
 
-	private double deadband = 0.10;				//the deadband on the controller (forward/backward)
-	private double turningDeadband = 0.20;		//the deadband on the controller (left/right)
+	private double deadband = 0.15;				//the deadband on the controller (forward/backward)
+	private double sideDeadband = 0.15;
+	private double turningDeadband = 0.10;		//the deadband on the controller (left/right)
 	private boolean negative = false;
 
 	private double longitudinal_input, latitudinal_input, rotational_input;			//used to store the direct input value of the respective axis on the controller
@@ -42,23 +43,33 @@ public class Drive extends SystemBase implements SystemInterface {
 
 	private double left_command = 0.0, right_command = 0.0;		//used for autonomous power output
 
-	private double last_error, distance_last_error;				//
+	private double last_error, overall_error;	
+	
+	private double last_rotational_angle = 0.0;
 
-	private double KpAim = 0.02; 				
-	private double KdAim = 0.0010; 
-	private double KpDistance = 0.02;
-	private double KdDistance = .08;
-	private double kpSkew = 0.003; 
-	private double min_aim_command = 0.005;
-	private double max_distance_command = 0.55; 
-	private double max_side_to_side_correction = 0.2;
+	public double setLFVelocity, setLRVelocity, setRFVelocity, setRRVelocity;
+
+	private double KpAim = 0.4;
+	private double KiAim = 0.0009;				
+	private double KdAim = 100.0; 
+
+
+	private long prevTime = System.currentTimeMillis();
+
+	private double heightOfLimeLight = 23.4375;
+	private double heightToTop = 8.1875 * 12;
+	private double viewingAngle = 49.7;
+	private double angleOfLimelight = 11.66;
 
 	public Drive() {
-		
 	}
 
 	@Override
 	public void process() {
+
+		updateOdometry();
+		SmartDashboard.putNumber("Odometry X Displacement", odometry.getPoseMeters().getTranslation().getX() / 1.537);
+		SmartDashboard.putNumber("Odometry Y Displacement", odometry.getPoseMeters().getTranslation().getY() / 1.537);
 
 		if (Robot.teleop && Robot.enabled) {
 
@@ -67,92 +78,97 @@ public class Drive extends SystemBase implements SystemInterface {
 			NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
 			double tx = table.getEntry("tx").getDouble(0.0);
 			double height = table.getEntry("tvert").getDouble(0.0);
-			double skew = table.getEntry("ts").getDouble(0.0);
 			double width = table.getEntry("thor").getDouble(0.0);
 
-			/*if(Axes.DriverTargetMode.getAxis() >= 0.5){
+			double pixelAngle = table.getEntry("ty").getDouble(0.0);
 
-				double heading_error = tx;
-				double distance_error = 0.0;
+			double distance = (heightToTop - heightOfLimeLight) * Math.tan(Math.PI / 180 * (90 - (angleOfLimelight + pixelAngle)));
+
+			SmartDashboard.putNumber("ty value", pixelAngle);
+			SmartDashboard.putNumber("distance", distance);
+
+//-----------------------------------------------------------------------------------------------------
+
+			RobotMap.blinkin.set(0.55); //color waves of team colors
+
+			negative = false;
+			longitudinal_input = Axes.Drive_ForwardBackward.getAxis();
+			SmartDashboard.putNumber("longitudinal input", longitudinal_input);
+			if(longitudinal_input < 0) negative = true;
+
+			longitudinal_output = Math.abs(longitudinal_input);
+
+			if(longitudinal_output > deadband){
+
+				longitudinal_output -= deadband;
+				longitudinal_output *= (1 / (1 - deadband));
+				longitudinal_output = Math.pow(longitudinal_output, 2);
+				if(negative) longitudinal_output = -longitudinal_output;
+
+			}else{
+
+				longitudinal_output = 0;
+
+			}
+
+			negative = false;
+			latitudinal_input = Axes.Drive_LeftRight.getAxis();
+			if(latitudinal_input < 0) negative = true;
+			
+			latitudinal_output = Math.abs(latitudinal_input);
+			if(latitudinal_output > sideDeadband){
+
+				latitudinal_output -= sideDeadband;
+				latitudinal_output *= Math.pow((1 / (1 - sideDeadband)), 2);
+				if(negative) latitudinal_output = -latitudinal_output;
+
+			}else{
+
+				latitudinal_output = 0;
+
+			}
+
+			if(System.currentTimeMillis() - prevTime >= 1500){
+
+				rotational_output = 0.0;
+				overall_error = 0.0;
+				prevTime = System.currentTimeMillis();
+	
+			}else if(Axes.Drive_DriverTargetMode.getAxis() < 0.5){
+
+				overall_error = 0.0;
+				negative = false;
+				rotational_input = Axes.Drive_Rotation.getAxis();
+				if(rotational_input < 0) negative = true;
+				
+				rotational_output = Math.abs(rotational_input);
+				if(rotational_output > turningDeadband){
+
+					rotational_output -= turningDeadband;
+					rotational_output *= Math.pow((1 / (1 - turningDeadband)), 2);
+					if(negative) rotational_output = -rotational_output;
+					last_rotational_angle = getAngle().getRadians();
+
+				}else{
+
+					rotational_output = 0.0;
+					
+				}
+
+			}else{
+
+				double heading_error = -tx;
 				double steering_adjust = 0.0;
-				double usableKpAim = 0.0;
-
-				double sideToSideCorrection;
-
-				if(skew >  -45){
-
-					sideToSideCorrection = (-90 - (skew)) ;
-
-				}else{
-
-					sideToSideCorrection = (skew);
-
-				}
-
-				sideToSideCorrection = (90 + sideToSideCorrection) * kpSkew;
-
-				if(height != 0.0){
-
-					if(sideToSideCorrection <= 3){
-
-						distance_error = 108.632 * Math.pow(.990, height);
-	
-					}else if(sideToSideCorrection <= 7){
-	
-						distance_error = 118.046 * Math.pow(.991, height);
-	
-					}else if(sideToSideCorrection <= 10){
-	
-						distance_error = 131.471 * Math.pow(.991, height);
-	
-					}else{
-	
-						distance_error = 122.591 * Math.pow(.9914, height);
-	
-					}
-
-				}
-
-				SmartDashboard.putNumber("Distance", distance_error);
-
-				if(width > 425 && height < 130){
-
-					distance_error = 20;
-
-				}
-
-				if(Math.abs(sideToSideCorrection) < 2){
-
-					RobotMap.blinkin.set(0.77); //green
-
-				}else if(sideToSideCorrection >= 2){
-
-					RobotMap.blinkin.set(0.61); //red
-
-				}else{
-
-					RobotMap.blinkin.set(0.87); //blue
-
-				}
-
-				if(Math.abs(sideToSideCorrection) > 3 || sideToSideCorrection == 0) { //skew correction was 5 looking for outcome of calmer bot
-
-					usableKpAim = KpAim * .3;
-
-				} else {
-
-					usableKpAim = KpAim;
-
-				}
+				overall_error += heading_error;
 
 				if ( tx > 1.0 ) {
 
-					steering_adjust = usableKpAim * heading_error + min_aim_command  + (heading_error - last_error) * KdAim ;
+					steering_adjust = KpAim * heading_error + KiAim * overall_error + (heading_error - last_error) * KdAim ;
 		
 				}
 				else if ( tx < -1.0 ) {
 
-					steering_adjust = usableKpAim * heading_error - min_aim_command + (heading_error - last_error) * KdAim;
+					steering_adjust = KpAim * heading_error + KiAim * overall_error + (heading_error - last_error) * KdAim;
 				
 				}else{
 
@@ -164,94 +180,29 @@ public class Drive extends SystemBase implements SystemInterface {
 
 				last_error = heading_error;
 
-				double distance_adjust = KpDistance * distance_error + KdDistance * (distance_error - distance_last_error);
+				rotational_output = steering_adjust;
+
+			}
+			
+			double total_output = longitudinal_output * latitudinal_output;
+			rotational_output = (2 * Math.pow(total_output, 2) - 2 * total_output + 1) * rotational_output;
+			
+
+			if(Robot.oi.getController1().getTriggerAxis(Hand.kRight) >= 0.5){
 				
-				if(Math.abs(distance_adjust) > max_distance_command){
+				drive(longitudinal_output * 0.4 * RobotMap.maxVelocity, latitudinal_output * 0.4 * RobotMap.maxVelocity, rotational_output * RobotMap.maxAngularVelocity, true);
 
-					distance_adjust = max_distance_command * Math.abs(distance_adjust) / distance_adjust;
-					
-				}
+			}else{
 
-				distance_last_error = distance_error;
+				drive(longitudinal_output * RobotMap.maxVelocity, latitudinal_output * RobotMap.maxVelocity, rotational_output * RobotMap.maxAngularVelocity * 0.5, true);
 
-				left_command = steering_adjust + distance_adjust ;
-				right_command = -steering_adjust + distance_adjust ;
+			}
 
-				if(sideToSideCorrection > max_side_to_side_correction){
+			if((Math.abs(latitudinal_input) < sideDeadband && Math.abs(longitudinal_output) < deadband) && Math.abs(rotational_output) < turningDeadband){
 
-					sideToSideCorrection = max_side_to_side_correction;
+				drive(0, 0, 0, true);
 
-				}
-
-				if(skew > -45){
-
-					left_command += sideToSideCorrection;
-					right_command -= sideToSideCorrection;
-
-				}else{
-
-					right_command += sideToSideCorrection;
-					left_command -= sideToSideCorrection;
-
-				}
-
-				drive.tankDrive(left_command, right_command);
-
-			}else{*/
-
-				RobotMap.blinkin.set(0.55); //color waves of team colors
-
-				negative = false;
-				longitudinal_input = Axes.Drive_ForwardBackward.getAxis();
-				if(longitudinal_input < 0) negative = true;
-
-				longitudinal_output = Math.abs(longitudinal_input);
-
-				if(longitudinal_output > deadband){
-
-					longitudinal_output -= deadband;
-					longitudinal_output *= (1 / (1 - deadband));
-					longitudinal_output = Math.pow(longitudinal_output, 2) * (1 - RobotMap.minMoveSpeed) + RobotMap.minMoveSpeed;
-					if(negative) longitudinal_output = -longitudinal_output;
-
-				}else{
-
-					longitudinal_output = 0;
-
-				}
-
-				negative = false;
-				latitudinal_input = Axes.Drive_LeftRight.getAxis();
-				if(latitudinal_input < 0) negative = true;
-				
-				latitudinal_output = Math.abs(latitudinal_input);
-				if(latitudinal_output > turningDeadband){
-
-					latitudinal_output -= turningDeadband;
-					latitudinal_output *= Math.pow((1 / (1 - turningDeadband)), 2);
-					if(negative) latitudinal_output = -latitudinal_output;
-
-				}else{
-
-					latitudinal_output = 0;
-
-				}
-
-				rotational_input = Axes.Drive_Rotation.getAxis();
-				rotational_output = rotational_input;
-
-				if(Robot.oi.getController1().getTriggerAxis(Hand.kRight) >= 0.5){
-					
-					drive(longitudinal_output * 0.7 * RobotMap.maxVelocity, latitudinal_output * 0.7 * RobotMap.maxVelocity, rotational_output * RobotMap.maxAngularVelocity, true);
-
-				}else{
-
-					drive(longitudinal_output * RobotMap.maxVelocity, latitudinal_output * RobotMap.maxVelocity, rotational_output * RobotMap.maxAngularVelocity, true);
-
-				}
-
-			//}
-
+			}
 
 		} else if (Robot.autonomous) {
 
@@ -296,7 +247,7 @@ public class Drive extends SystemBase implements SystemInterface {
         	fieldRelative ? ChassisSpeeds.fromFieldRelativeSpeeds(
             xSpeed, ySpeed, rot, getAngle()
         	) : new ChassisSpeeds(xSpeed, ySpeed, rot)
-    	);
+		);
     	mecanumDriveWheelSpeeds.normalize(RobotMap.maxVelocity);
 		setSpeeds(mecanumDriveWheelSpeeds);
 		
@@ -313,12 +264,20 @@ public class Drive extends SystemBase implements SystemInterface {
 
 	}
 
-	public void setSpeeds(MecanumDriveWheelSpeeds speeds) {	
-	
-		frontLeft.set(ControlMode.Velocity, speeds.frontLeftMetersPerSecond * RobotMap.encoderVelocityToWheelVelocity);
-		frontRight.set(ControlMode.Velocity, speeds.frontRightMetersPerSecond * RobotMap.encoderVelocityToWheelVelocity);
-		backLeft.set(ControlMode.Velocity, speeds.rearLeftMetersPerSecond * RobotMap.encoderVelocityToWheelVelocity);
-		backRight.set(ControlMode.Velocity, speeds.rearRightMetersPerSecond * RobotMap.encoderVelocityToWheelVelocity);
+	public void setSpeeds(MecanumDriveWheelSpeeds speeds) {
+
+		frontLeft.selectProfileSlot(0, 0);
+		frontRight.selectProfileSlot(0, 0);
+		backLeft.selectProfileSlot(0, 0);
+		backRight.selectProfileSlot(0, 0);
+		setLFVelocity = speeds.frontLeftMetersPerSecond * RobotMap.encoderVelocityToWheelVelocity;
+		setRFVelocity = speeds.frontRightMetersPerSecond * RobotMap.encoderVelocityToWheelVelocity;
+		setLRVelocity = speeds.rearLeftMetersPerSecond * RobotMap.encoderVelocityToWheelVelocity;
+		setRRVelocity = speeds.rearRightMetersPerSecond * RobotMap.encoderVelocityToWheelVelocity;
+		frontLeft.set(ControlMode.Velocity, setLFVelocity);
+		frontRight.set(ControlMode.Velocity, setRFVelocity);
+		backLeft.set(ControlMode.Velocity, setLRVelocity);
+		backRight.set(ControlMode.Velocity, setRRVelocity);
 
 	}
 
