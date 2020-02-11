@@ -7,6 +7,9 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.kauailabs.navx.frc.AHRS;
 
+import com.revrobotics.ColorSensorV3;
+
+import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
@@ -24,11 +27,17 @@ public class RobotMap {
 	public static WPI_TalonFX backLeftMotor;		//3
 	//spare talon srx								//4
 	//spare talon srx								//5
-	public static WPI_TalonFX shooter;				//6
-	//spare talon srx
+	//spare talon srx								//6
+	//spare talon srx								//7
 	public static WPI_TalonFX backRightMotor;		//8
 	//spare talon srx								//9
 	public static WPI_TalonFX frontRightMotor;		//10
+	public static WPI_TalonFX shooter; 				//11
+	public static WPI_TalonSRX topBelt;				//12
+	public static WPI_TalonSRX indexWheel;			//13
+	public static WPI_TalonFX shooterSlave;			//14
+
+	public static ColorSensorV3 colorSensor;
 
 	public static Spark blinkin;
 
@@ -87,7 +96,18 @@ public class RobotMap {
 		frontRightMotor.config_kI(0, 0, 0);
 		frontRightMotor.config_kD(0, 80, 0);
 		frontRightMotor.setNeutralMode(NeutralMode.Brake);
+		shooter = new WPI_TalonFX(11);
+		shooterSlave = new WPI_TalonFX(15);
+		shooterSlave.follow(shooter);
+		shooterSlave.setInverted(true);
+		topBelt = new WPI_TalonSRX(12);//12
+		topBelt.setInverted(true);
+		topBelt.setNeutralMode(NeutralMode.Brake);
+		indexWheel = new WPI_TalonSRX(13);//13
+		indexWheel.setNeutralMode(NeutralMode.Brake);
 		
+		colorSensor = new ColorSensorV3(I2C.Port.kOnboard);
+
 		blinkin = new Spark(1);
 
 		navx = new AHRS(SPI.Port.kMXP);

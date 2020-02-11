@@ -67,6 +67,11 @@ public class Robot extends TimedRobot {
 		oi = new OI();
 
 		functionProcessor = new FunctionProcessor();
+
+		SmartDashboard.putNumber("kf", .05);
+		SmartDashboard.putNumber("kp", 0.125);
+		SmartDashboard.putNumber("ki", 0.000001);
+		SmartDashboard.putNumber("kd", 3.0);
 	}
 
 	/**
@@ -167,6 +172,11 @@ public class Robot extends TimedRobot {
 	@Override
 	public void teleopInit() {
 
+		RobotMap.shooter.config_kF(0, SmartDashboard.getNumber("kf", 0.0), 0);
+		RobotMap.shooter.config_kP(0, SmartDashboard.getNumber("kp", 0.0), 0);
+		RobotMap.shooter.config_kI(0, SmartDashboard.getNumber("ki", 0.0), 0);
+		RobotMap.shooter.config_kD(0, SmartDashboard.getNumber("kd", 0.0), 0);
+
 	}
 
 	/**
@@ -192,11 +202,11 @@ public class Robot extends TimedRobot {
 				loopPeriod = (int) (currentTime - prevLoopTime);
 				prevLoopTime = currentTime;
 				loopCnt++;
-
-				// run processes
-				drive.process();
-				//shooter.process();
+				
 				functionProcessor.process();
+				// run processes
+				//drive.process();
+				shooter.process();
 				/** Run subsystem process methods here */
 
 			}
@@ -220,6 +230,10 @@ public class Robot extends TimedRobot {
 			SmartDashboard.putNumber("Loop Count", loopCnt);
 			SmartDashboard.putNumber("autonMode", 0);
 
+			SmartDashboard.putNumber("Red", RobotMap.colorSensor.getColor().red);
+			SmartDashboard.putNumber("Green", RobotMap.colorSensor.getColor().green);
+			SmartDashboard.putNumber("Blue", RobotMap.colorSensor.getColor().blue);
+			SmartDashboard.putNumber("Wheel Shooter Speed", RobotMap.shooter.getSelectedSensorVelocity());
 			SmartDashboard.putNumber("Left Front Encoder Position", RobotMap.frontLeftMotor.getSelectedSensorVelocity());
 			SmartDashboard.putNumber("Left Rear Encoder Position", RobotMap.backLeftMotor.getSelectedSensorVelocity());
 			SmartDashboard.putNumber("Right Front Encoder Position", RobotMap.frontRightMotor.getSelectedSensorVelocity());
